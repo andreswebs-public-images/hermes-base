@@ -47,6 +47,7 @@ RUN <<EOT
         shellcheck \
         shelltestrunner \
         socat \
+        sqlite3 \
         sudo \
         tree \
         tmux \
