@@ -39,6 +39,7 @@ RUN <<EOT
         man-db \
         netcat-openbsd \
         openssh-client \
+        pass \
         poppler-utils \
         procps \
         psmisc \
