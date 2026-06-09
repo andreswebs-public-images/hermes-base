@@ -8,6 +8,8 @@ ARG PYTHON_VERSION="3.14"
 ENV PYTHONUNBUFFERED="1"
 ENV UV_PYTHON_INSTALL_DIR="/opt/uv/python"
 ENV UV_PYTHON_BIN_DIR="/usr/local/bin"
+ENV LANG="C.UTF-8"
+ENV LC_ALL="C.UTF-8"
 
 COPY --from=mikefarah/yq /usr/bin/yq /usr/local/bin/
 COPY --from=denoland/deno:bin /deno /usr/local/bin/
@@ -22,6 +24,7 @@ RUN <<EOT
     apt-get install --yes --no-install-recommends \
         bash-completion \
         bc \
+        build-essential \
         bzip2 \
         ca-certificates \
         curl \
@@ -53,6 +56,7 @@ RUN <<EOT
         tree \
         tmux \
         unzip \
+        uuid-runtime \
         vim \
         zip
     apt-get clean
@@ -87,10 +91,21 @@ RUN <<EOT
     chmod 0440 "/etc/sudoers.d/${APP_USER}"
 EOT
 
-ENV LANG="C.UTF-8"
+RUN <<EOT
+set -o errexit
+mkdir -p /home/linuxbrew/.linuxbrew
+chown -R "${APP_UID}:${APP_GID}" /home/linuxbrew
+EOT
+
 ENV HOME="/home/${APP_USER}"
 ENV EDITOR="vim"
 ENV DO_NOT_TRACK="true"
+ENV HOMEBREW_NO_ANALYTICS="1"
+
+USER "${APP_USER}"
+RUN NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+USER root
 
 RUN <<EOT
     set -o errexit
@@ -100,3 +115,12 @@ export NPM_CONFIG_PREFIX="${HOME}/.npm-global"
 SH
     chmod 0644 /etc/profile.d/dev-path.sh
 EOT
+
+RUN <<EOT
+    set -o errexit
+    BREW_ENV='eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+    printf '\n%s\n' "${BREW_ENV}" >> /etc/profile.d/brew.sh
+    chmod 0644 /etc/profile.d/brew.sh
+EOT
+
+ENTRYPOINT [ "bash" ]
