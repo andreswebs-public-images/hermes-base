@@ -123,4 +123,6 @@ RUN <<EOT
     chmod 0644 /etc/profile.d/brew.sh
 EOT
 
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
+
 ENTRYPOINT [ "bash" ]
