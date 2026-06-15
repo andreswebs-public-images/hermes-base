@@ -92,9 +92,9 @@ RUN <<EOT
 EOT
 
 RUN <<EOT
-set -o errexit
-mkdir -p /home/linuxbrew/.linuxbrew
-chown -R "${APP_UID}:${APP_GID}" /home/linuxbrew
+    set -o errexit
+    mkdir -p /home/linuxbrew/.linuxbrew
+    chown -R "${APP_UID}:${APP_GID}" /home/linuxbrew
 EOT
 
 ENV HOME="/home/${APP_USER}"
