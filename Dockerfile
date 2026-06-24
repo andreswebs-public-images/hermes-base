@@ -18,10 +18,12 @@ COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bunx /usr/local/bin/
 COPY --from=golang:1.26-alpine /usr/local/go/ /usr/local/go/
 COPY --from=golangci/golangci-lint:latest-alpine /usr/bin/golangci-lint /usr/local/bin/
 
+RUN uv python install "${PYTHON_VERSION}" --default
+
 RUN <<EOT
     set -o errexit
     apt-get update
-    apt-get install --yes --no-install-recommends \
+    apt-get install --yes --quiet --no-install-recommends \
         bash-completion \
         bc \
         build-essential \
@@ -41,6 +43,7 @@ RUN <<EOT
         lsof \
         man-db \
         netcat-openbsd \
+        openssl \
         openssh-client \
         pass \
         poppler-utils \
@@ -82,8 +85,6 @@ RUN <<EOT
         "${APP_USER}"
 EOT
 
-RUN uv python install "${PYTHON_VERSION}" --default
-
 RUN <<EOT
     set -o errexit
     mkdir --parents /etc/sudoers.d/
@@ -93,11 +94,13 @@ EOT
 
 RUN <<EOT
     set -o errexit
-    mkdir -p /home/linuxbrew/.linuxbrew
-    chown -R "${APP_UID}:${APP_GID}" /home/linuxbrew
+    mkdir --parents /home/linuxbrew/.linuxbrew
+    chown --recursive "${APP_UID}:${APP_GID}" /home/linuxbrew
 EOT
 
 ENV HOME="/home/${APP_USER}"
+ENV NPM_CONFIG_PREFIX="${HOME}/.npm-global"
+ENV PATH="${HOME}/.venv/bin:${HOME}/.local/bin:${NPM_CONFIG_PREFIX}/bin:${HOME}/.bun/bin:/usr/local/go/bin:${HOME}/go/bin:${PATH}"
 ENV EDITOR="vim"
 ENV DO_NOT_TRACK="true"
 ENV HOMEBREW_NO_ANALYTICS="1"
@@ -110,8 +113,8 @@ USER root
 RUN <<EOT
     set -o errexit
     cat > /etc/profile.d/dev-path.sh <<'SH'
-export PATH="${HOME}/.venv/bin:${HOME}/.local/bin:${HOME}/.npm-global/bin:${HOME}/.bun/bin:${HOME}/go/bin:/usr/local/go/bin:${PATH}"
 export NPM_CONFIG_PREFIX="${HOME}/.npm-global"
+export PATH="${HOME}/.venv/bin:${HOME}/.local/bin:${NPM_CONFIG_PREFIX}/bin:${HOME}/.bun/bin:/usr/local/go/bin:${HOME}/go/bin:${PATH}"
 SH
     chmod 0644 /etc/profile.d/dev-path.sh
 EOT
