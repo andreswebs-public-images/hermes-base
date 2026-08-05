@@ -128,4 +128,11 @@ EOT
 
 ENV PATH="/home/linuxbrew/.linuxbrew/bin:${PATH}"
 
+RUN <<EOT
+    set -o errexit -o pipefail
+    mkdir --parents /opt/ticket
+    git clone https://github.com/wedow/ticket.git /opt/ticket
+    ln --symbolic /opt/ticket/ticket /usr/local/bin/tk
+EOT
+
 ENTRYPOINT [ "bash" ]
